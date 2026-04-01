@@ -20,6 +20,7 @@ const portfolioRoutes = require('./routes/portfolioRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const messengerRoutes = require('./routes/messengerRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const endorsementRoutes = require('./routes/endorsementRoutes');
 
 // Import error handler
 const errorHandler = require('./middlewares/errorHandler');
@@ -56,6 +57,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messengerRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/endorsements', endorsementRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

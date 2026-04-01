@@ -1,184 +1,115 @@
 /**
- * Seed Data Script
- * =================
- * Populates the database with sample data for development/testing.
- *
- * Run: npm run seed
+ * Database Seeder
+ * ===============
+ * Populates the MySQL database with random student data, skills,
+ * portfolio projects, and endorsements.
+ * Usage: node src/utils/seed.js
  */
 
-require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
+require('dotenv').config();
+const bcrypt = require('bcryptjs');
+const { 
+  sequelize, User, Skill, PortfolioProject, Endorsement, Review 
+} = require('../models');
 
-const { sequelize, User, Skill, Request, Review } = require('../models');
-
-const seedData = async () => {
+const seedDatabase = async () => {
   try {
-    // Connect and sync
-    await sequelize.authenticate();
-    console.log('✅ Database connected for seeding.');
-
-    // Force sync (drops and re-creates all tables) — ONLY for seeding
+    // 1. Sync & Clear Database (CAREFUL: this deletes everything)
     await sequelize.sync({ force: true });
-    console.log('✅ Tables re-created.');
+    console.log('✅ Database synchronized (FORCE: TRUE)');
 
-    // ==========================================
-    // 1. Create Users
-    // ==========================================
+    const salt = await bcrypt.genSalt(10);
+    const password = await bcrypt.hash('password123', salt);
+
+    // 2. Create Users
     const users = await User.bulkCreate([
-      {
-        name: 'Alice Johnson',
-        email: 'alice@example.com',
-        password: 'password123',
-        role: 'student',
-        college: 'MIT',
+      { 
+        name: 'Alice Smith', email: 'alice@student.com', password, college: 'Global Institute of Tech', department: 'Computer Science', year: '4th Year',
+        bio: 'Passionate Full-Stack Developer specializing in React and Node.js. Love building tools that help students collaborate.',
+        github_url: 'https://github.com/alice', linkedin_url: 'https://linkedin.com/in/alice'
       },
-      {
-        name: 'Bob Smith',
-        email: 'bob@example.com',
-        password: 'password123',
-        role: 'student',
-        college: 'Stanford',
+      { 
+        name: 'Bob Johnson', email: 'bob@student.com', password, college: 'National Engineering College', department: 'Information Tech', year: '3rd Year',
+        bio: 'Data Science enthusiast. I enjoy working with Python and finding insights from large datasets.',
+        github_url: 'https://github.com/bob'
       },
-      {
-        name: 'Charlie Wilson',
-        email: 'charlie@example.com',
-        password: 'password123',
-        role: 'student',
-        college: 'MIT',
+      { 
+        name: 'Charlie Davis', email: 'charlie@student.com', password, college: 'Tech University', department: 'Mechanical Eng', year: '2nd Year',
+        bio: 'Mechanical engineering student with a deep interest in CAD and 3D modeling.'
       },
-      {
-        name: 'Diana Ross',
-        email: 'diana@example.com',
-        password: 'password123',
-        role: 'admin',
-        college: 'Harvard',
+      { 
+        name: 'Diana Prince', email: 'diana@student.com', password, college: 'Arts & Design School', department: 'UI/UX Design', year: '4th Year',
+        bio: 'UI/UX Designer focused on creating intuitive and accessible user experiences.',
+        linkedin_url: 'https://linkedin.com/in/diana'
       },
-    ], { individualHooks: true }); // individualHooks ensures bcrypt hook runs
+      { name: 'Ethan Hunt', email: 'ethan@student.com', password, college: 'Science Academy', department: 'Data Science', year: '3rd Year', bio: 'AI researcher and data analyst.' },
+      { name: 'Fiona Gallagher', email: 'fiona@student.com', password, college: 'Global Institute of Tech', department: 'Computer Science', year: '3rd Year', bio: 'Software engineering student interested in blockchain.' },
+      { name: 'George Miller', email: 'george@student.com', password, college: 'National Engineering College', department: 'Electronics', year: '4th Year', bio: 'Hardware hacker and IoT enthusiast.' },
+      { name: 'Hannah Abbott', email: 'hannah@student.com', password, college: 'Tech University', department: 'Software Eng', year: '1st Year', bio: 'Learning the ropes of software development.' },
+      { name: 'Ian Wright', email: 'ian@student.com', password, college: 'Science Academy', department: 'AI & ML', year: '4th Year', bio: 'ML Engineer in the making.' },
+      { name: 'Julia Roberts', email: 'julia@student.com', password, college: 'Arts & Design School', department: 'Graphic Design', year: '3rd Year', bio: 'Creative designer with a panache for digital art.' },
+    ]);
+    console.log('👥 10 Users created');
 
-    console.log(`✅ Created ${users.length} users.`);
-
-    // ==========================================
-    // 2. Create Skills
-    // ==========================================
+    // 3. Create Skills
     const skills = await Skill.bulkCreate([
-      {
-        user_id: users[0].id,
-        skill_name: 'JavaScript',
-        category: 'Programming',
-        proficiency_level: 'advanced',
-        description: 'Full-stack JavaScript development with React and Node.js',
-      },
-      {
-        user_id: users[0].id,
-        skill_name: 'UI/UX Design',
-        category: 'Design',
-        proficiency_level: 'intermediate',
-        description: 'Figma, wireframing, user research',
-      },
-      {
-        user_id: users[1].id,
-        skill_name: 'Python',
-        category: 'Programming',
-        proficiency_level: 'expert',
-        description: 'Data science with pandas, numpy, scikit-learn',
-      },
-      {
-        user_id: users[1].id,
-        skill_name: 'Machine Learning',
-        category: 'AI/ML',
-        proficiency_level: 'advanced',
-        description: 'TensorFlow, PyTorch, model training and deployment',
-      },
-      {
-        user_id: users[2].id,
-        skill_name: 'JavaScript',
-        category: 'Programming',
-        proficiency_level: 'intermediate',
-        description: 'Frontend development with React',
-      },
-      {
-        user_id: users[2].id,
-        skill_name: 'Graphic Design',
-        category: 'Design',
-        proficiency_level: 'advanced',
-        description: 'Adobe Photoshop, Illustrator, brand identity',
-      },
-      {
-        user_id: users[3].id,
-        skill_name: 'Project Management',
-        category: 'Management',
-        proficiency_level: 'expert',
-        description: 'Agile, Scrum, team leadership',
-      },
-      {
-        user_id: users[3].id,
-        skill_name: 'Python',
-        category: 'Programming',
-        proficiency_level: 'beginner',
-        description: 'Learning Python for automation',
-      },
+      { user_id: 1, skill_name: 'React.js', category: 'Development', proficiency_level: 'expert', type: 'offer', description: 'Experienced in hooks and state management.' },
+      { user_id: 1, skill_name: 'Node.js', category: 'Development', proficiency_level: 'intermediate', type: 'offer', description: 'Building RESTful APIs with Express.' },
+      { user_id: 1, skill_name: 'Python', category: 'Data Science', proficiency_level: 'beginner', type: 'request', description: 'Want to learn Pandas and NumPy.' },
+
+      { user_id: 2, skill_name: 'Python', category: 'Data Science', proficiency_level: 'advanced', type: 'offer', description: 'Data analysis and scripting.' },
+      { user_id: 2, skill_name: 'Machine Learning', category: 'AI', proficiency_level: 'intermediate', type: 'offer', description: 'Scikit-learn and basic neural networks.' },
+      { user_id: 2, skill_name: 'React.js', category: 'Development', proficiency_level: 'beginner', type: 'request', description: 'Learning frontend development.' },
+
+      { user_id: 3, skill_name: 'CAD Design', category: 'Mechanical', proficiency_level: 'expert', type: 'offer', description: 'SolidWorks and AutoCAD pro.' },
+      { user_id: 3, skill_name: 'C++', category: 'Development', proficiency_level: 'intermediate', type: 'offer', description: 'Competitive programming.' },
+
+      { user_id: 4, skill_name: 'Figma', category: 'Design', proficiency_level: 'expert', type: 'offer', description: 'Master of prototyping and style guides.' },
+      { user_id: 4, skill_name: 'UI/UX Design', category: 'Design', proficiency_level: 'advanced', type: 'offer', description: 'Focused on user behavior and research.' },
+      { user_id: 4, skill_name: 'HTML/CSS', category: 'Development', proficiency_level: 'beginner', type: 'request', description: 'Want to build my designs.' },
+
+      { user_id: 5, skill_name: 'Data Analysis', category: 'Data Science', proficiency_level: 'expert', type: 'offer', description: 'Deep insight into big data.' },
+      { user_id: 5, skill_name: 'PostgreSQL', category: 'Database', proficiency_level: 'advanced', type: 'offer', description: 'Query optimization.' },
+
+      { user_id: 6, skill_name: 'JavaScript', category: 'Development', proficiency_level: 'expert', type: 'offer', description: 'ES6+ and functional programming.' },
+      { user_id: 7, skill_name: 'Arduino', category: 'Electronics', proficiency_level: 'advanced', type: 'offer' },
+      { user_id: 8, skill_name: 'Java', category: 'Development', proficiency_level: 'intermediate', type: 'offer' },
+      { user_id: 9, skill_name: 'TensorFlow', category: 'AI', proficiency_level: 'advanced', type: 'offer' },
+      { user_id: 10, skill_name: 'Photoshop', category: 'Design', proficiency_level: 'expert', type: 'offer' },
     ]);
+    console.log('⚡ Skills populated');
 
-    console.log(`✅ Created ${skills.length} skills.`);
-
-    // ==========================================
-    // 3. Create Requests
-    // ==========================================
-    const requests = await Request.bulkCreate([
-      {
-        requester_id: users[0].id,
-        skill_id: skills[2].id, // Alice wants Bob's Python
-        message: 'Hi Bob! I would love to learn Python from you. I can teach you JavaScript in return!',
-        status: 'pending',
-      },
-      {
-        requester_id: users[2].id,
-        skill_id: skills[0].id, // Charlie wants Alice's JavaScript
-        message: 'Hey Alice, can you help me level up my JS skills?',
-        status: 'accepted',
-      },
-      {
-        requester_id: users[1].id,
-        skill_id: skills[5].id, // Bob wants Charlie's Graphic Design
-        message: 'I need help designing my portfolio. Can we exchange skills?',
-        status: 'pending',
-      },
+    // 4. Create Portfolio Projects
+    await PortfolioProject.bulkCreate([
+      { user_id: 1, title: 'StudyBuddy App', description: 'A collaboration platform built with React and Node.', link: 'https://github.com' },
+      { user_id: 4, title: 'Zen UI Kit', description: 'A minimalist UI kit for design systems.', link: 'https://behance.net' },
+      { user_id: 5, title: 'Housing Market Analysis', description: 'Predicting prices with Python ML.', link: 'https://kaggle.com' },
     ]);
+    console.log('📁 Portfolio projects seeded');
 
-    console.log(`✅ Created ${requests.length} requests.`);
-
-    // ==========================================
-    // 4. Create Reviews
-    // ==========================================
-    const reviews = await Review.bulkCreate([
-      {
-        reviewer_id: users[2].id,
-        reviewed_user_id: users[0].id,
-        rating: 5,
-        comment: 'Alice is an amazing JavaScript tutor! Very patient and clear.',
-      },
-      {
-        reviewer_id: users[0].id,
-        reviewed_user_id: users[2].id,
-        rating: 4,
-        comment: 'Charlie is a fast learner with great design sense.',
-      },
+    // 5. Create Endorsements
+    await Endorsement.bulkCreate([
+      { skill_id: 1, endorser_id: 2, comment: 'Amazing React skills, helped me a lot!' },
+      { skill_id: 1, endorser_id: 4, comment: 'Very clean code.' },
+      { skill_id: 4, endorser_id: 1, comment: 'Alice knows her Python stuff!' },
+      { skill_id: 9, endorser_id: 1, comment: 'The best designer in campus.' },
     ]);
+    console.log('⭐ Endorsements seeded');
 
-    console.log(`✅ Created ${reviews.length} reviews.`);
+    // 6. Create Reviews
+    await Review.bulkCreate([
+      { reviewer_id: 2, reviewed_user_id: 1, rating: 5, comment: 'Excellent collaborator! Very knowledgeable in React.' },
+      { reviewer_id: 1, reviewed_user_id: 4, rating: 5, comment: 'Diana designed an incredible landing page for our project.' },
+    ]);
+    console.log('💬 Reviews seeded');
 
-    console.log('\n🎉 Seed data loaded successfully!');
-    console.log('\n📧 Test Credentials:');
-    console.log('   Email: alice@example.com | Password: password123');
-    console.log('   Email: bob@example.com   | Password: password123');
-    console.log('   Email: charlie@example.com | Password: password123');
-    console.log('   Email: diana@example.com | Password: password123 (admin)');
-
+    console.log('\n🌟 DATABASE SEEDING COMPLETED SUCCESSFULLY 🌟');
     process.exit(0);
+
   } catch (error) {
-    console.error('❌ Seeding failed:', error.message);
-    console.error(error);
+    console.error('❌ Seeding failed:', error);
     process.exit(1);
   }
 };
 
-seedData();
+seedDatabase();
