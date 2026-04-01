@@ -41,6 +41,10 @@ const Skill = sequelize.define('Skill', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  type: {
+    type: DataTypes.ENUM('offer', 'request'),
+    defaultValue: 'offer',
+  },
 }, {
   tableName: 'skills',
 });

@@ -13,7 +13,7 @@ const { Skill, User } = require('../models');
  * @access  Private
  */
 const createSkill = asyncHandler(async (req, res) => {
-  const { skill_name, category, proficiency_level, description } = req.body;
+  const { skill_name, category, proficiency_level, description, type } = req.body;
 
   const skill = await Skill.create({
     user_id: req.user.id,
@@ -21,6 +21,7 @@ const createSkill = asyncHandler(async (req, res) => {
     category,
     proficiency_level,
     description,
+    type,
   });
 
   res.status(201).json({
@@ -36,12 +37,22 @@ const createSkill = asyncHandler(async (req, res) => {
  * @access  Public
  */
 const getAllSkills = asyncHandler(async (req, res) => {
-  const { category, proficiency_level } = req.query;
+  const { category, proficiency_level, type, department, year, search } = req.query;
+  const { Op } = require('sequelize');
 
-  // Build dynamic filter
+  // Build dynamic filter for Skills
   const where = {};
   if (category) where.category = category;
   if (proficiency_level) where.proficiency_level = proficiency_level;
+  if (type) where.type = type;
+  if (search) {
+    where.skill_name = { [Op.like]: `%${search}%` };
+  }
+
+  // Build dynamic filter for User (owner)
+  const userWhere = {};
+  if (department) userWhere.department = department;
+  if (year) userWhere.year = year;
 
   const skills = await Skill.findAll({
     where,
@@ -49,10 +60,11 @@ const getAllSkills = asyncHandler(async (req, res) => {
       {
         model: User,
         as: 'owner',
-        attributes: ['id', 'name', 'email', 'college'],
+        where: Object.keys(userWhere).length > 0 ? userWhere : undefined,
+        attributes: ['id', 'name', 'email', 'college', 'department', 'year'],
       },
     ],
-    order: [['created_at', 'DESC']],
+    order: [['createdAt', 'DESC']],
   });
 
   res.status(200).json({
@@ -73,7 +85,7 @@ const getSkillById = asyncHandler(async (req, res) => {
       {
         model: User,
         as: 'owner',
-        attributes: ['id', 'name', 'email', 'college'],
+        attributes: ['id', 'name', 'email', 'college', 'department', 'year'],
       },
     ],
   });

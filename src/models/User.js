@@ -42,6 +42,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(200),
     allowNull: true,
   },
+  department: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  year: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   // Hash password before saving
