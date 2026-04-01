@@ -16,6 +16,10 @@ const skillRoutes = require('./routes/skillRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const matchRoutes = require('./routes/matchRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const portfolioRoutes = require('./routes/portfolioRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const messengerRoutes = require('./routes/messengerRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // Import error handler
 const errorHandler = require('./middlewares/errorHandler');
@@ -48,6 +52,10 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messengerRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

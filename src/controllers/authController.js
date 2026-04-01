@@ -13,9 +13,9 @@ const authService = require('../services/authService');
  * @access  Public
  */
 const register = asyncHandler(async (req, res) => {
-  const { name, email, password, role, college } = req.body;
+  const { name, email, password, role, college, department, year } = req.body;
 
-  const result = await authService.register({ name, email, password, role, college });
+  const result = await authService.register({ name, email, password, role, college, department, year });
 
   res.status(201).json({
     success: true,
