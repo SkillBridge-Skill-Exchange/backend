@@ -28,28 +28,35 @@ const seedDatabase = async () => {
     console.log('✅ Database cleared');
 
     // 3. Create Users
-    const users = await User.insertMany([
-      {
+    const usersData = [
+      { 
+        name: 'Harini N', email: 'harinin006@gmail.com', password: 'harini05', college: 'Amrita Vishwa Vidyapeetham', department: 'Engineering', year: '4th Year',
+        bio: 'Platform Creator & Developer.',
+        github_url: 'https://github.com/harini', linkedin_url: 'https://linkedin.com/in/harini'
+      },
+      { 
         name: 'Alice Smith', email: 'alice@student.com', password: 'password123', college: 'Global Institute of Tech', department: 'Computer Science', year: '4th Year',
         bio: 'Passionate Full-Stack Developer specializing in React and Node.js.',
         github_url: 'https://github.com/alice', linkedin_url: 'https://linkedin.com/in/alice'
       },
-      {
+      { 
         name: 'Bob Johnson', email: 'bob@student.com', password: 'password123', college: 'National Engineering College', department: 'Information Tech', year: '3rd Year',
         bio: 'Data Science enthusiast. I enjoy working with Python.',
         github_url: 'https://github.com/bob'
       },
-      {
+      { 
         name: 'Charlie Davis', email: 'charlie@student.com', password: 'password123', college: 'Tech University', department: 'Mechanical Eng', year: '2nd Year',
         bio: 'Mechanical engineering student.'
       },
-      {
+      { 
         name: 'Diana Prince', email: 'diana@student.com', password: 'password123', college: 'Arts & Design School', department: 'UI/UX Design', year: '4th Year',
         bio: 'UI/UX Designer.',
         linkedin_url: 'https://linkedin.com/in/diana'
       },
-    ]);
-    console.log(`👥 ${users.length} Users created`);
+    ];
+
+    const users = await Promise.all(usersData.map(userData => User.create(userData)));
+    console.log(`👥 ${users.length} Users created (with hashed passwords)`);
 
     const u1 = users[0]._id;
     const u2 = users[1]._id;
