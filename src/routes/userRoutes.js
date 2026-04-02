@@ -9,11 +9,15 @@ const { Router } = require('express');
 const { body } = require('express-validator');
 const validate = require('../middlewares/validate');
 const { protect } = require('../middlewares/authMiddleware');
-const { getProfile, updateProfile } = require('../controllers/userController');
+const { getAllUsers, getUserById, getProfile, updateProfile } = require('../controllers/userController');
 
 const router = Router();
 
-// All user routes require authentication
+// Public routes (for landing page / student discovery)
+router.get('/', getAllUsers);
+router.get('/:id', getUserById);
+
+// Protected routes (require valid JWT)
 router.use(protect);
 
 router.get('/profile', getProfile);
