@@ -71,8 +71,8 @@ const getUserById = asyncHandler(async (req, res) => {
   const [skills, portfolio, reviews, endorsements] = await Promise.all([
     Skill.find({ user_id: user._id }).lean(),
     PortfolioProject.find({ user_id: user._id }).lean(),
-    Review.find({ reviewee_id: user._id }).populate('reviewer', 'name').lean(),
-    Endorsement.find({ skill_id: { $in: await Skill.find({ user_id: user._id }).distinct('_id') } }).populate('endorser', 'name').lean()
+    Review.find({ reviewed_user_id: user._id }).populate('reviewer_id', 'name').lean(),
+    Endorsement.find({ skill_id: { $in: await Skill.find({ user_id: user._id }).distinct('_id') } }).populate('endorser_id', 'name').lean()
   ]);
 
   res.status(200).json({

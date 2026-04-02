@@ -8,14 +8,12 @@ const { asyncHandler } = require('../utils/helpers');
 // Get all endorsements for the authenticated user's skills
 router.get('/all', protect, asyncHandler(async (req, res) => {
   const { Skill } = require('../models');
-  const mySkills = await Skill.findAll({ where: { user_id: req.user.id }, attributes: ['id'] });
-  const skillIds = mySkills.map(s => s.id);
+  const mySkills = await Skill.find({ user_id: req.user.id }).distinct('_id');
   
-  const endorsements = await Endorsement.findAll({
-    where: { skill_id: skillIds },
-    include: [{ model: User, as: 'endorser', attributes: ['id', 'name', 'college'] }],
-    order: [['createdAt', 'DESC']]
-  });
+  const endorsements = await Endorsement.find({ skill_id: { $in: mySkills } })
+    .populate('endorser_id', 'name college')
+    .sort({ createdAt: -1 })
+    .lean();
 
   res.status(200).json({ success: true, data: endorsements });
 }));
