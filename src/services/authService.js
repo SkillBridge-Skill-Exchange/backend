@@ -26,16 +26,16 @@ const generateToken = (id) => {
  */
 const register = async (userData) => {
   // Check if user already exists
-  const existingUser = await User.findOne({ where: { email: userData.email } });
+  const existingUser = await User.findOne({ email: userData.email });
   if (existingUser) {
     const error = new Error('Email already registered');
     error.statusCode = 409;
     throw error;
   }
 
-  // Create the user (password hashed by model hook)
+  // Create the user (password hashed by model middleware)
   const user = await User.create(userData);
-  const token = generateToken(user.id);
+  const token = generateToken(user._id);
 
   return {
     user: user.toSafeJSON(),
@@ -43,30 +43,24 @@ const register = async (userData) => {
   };
 };
 
-/**
- * Login an existing user.
- * @param {string} email
- * @param {string} password
- * @returns {Object} { user, token }
- */
 const login = async (email, password) => {
-  // Find user by email
-  const user = await User.findOne({ where: { email } });
+  // Find user by email and explicitly include password
+  const user = await User.findOne({ email }).select('+password');
   if (!user) {
     const error = new Error('Invalid email or password');
     error.statusCode = 401;
     throw error;
   }
 
-  // Compare passwords
-  const isMatch = await user.comparePassword(password);
+  // Compare passwords (using instance method in User model)
+  const isMatch = await user.comparePassword(password, user.password);
   if (!isMatch) {
     const error = new Error('Invalid email or password');
     error.statusCode = 401;
     throw error;
   }
 
-  const token = generateToken(user.id);
+  const token = generateToken(user._id);
 
   return {
     user: user.toSafeJSON(),

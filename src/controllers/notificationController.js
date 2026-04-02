@@ -7,23 +7,17 @@ const { Notification } = require('../models');
  * @access  Private
  */
 const getMyNotifications = asyncHandler(async (req, res) => {
-  const notifications = await Notification.findAll({
-    where: { user_id: req.user.id },
-    order: [['createdAt', 'DESC']],
-    limit: 20
-  });
+  const notifications = await Notification.find({ user_id: req.user._id })
+    .sort({ createdAt: -1 })
+    .limit(20);
 
   res.status(200).json({ success: true, data: notifications });
 });
 
-/**
- * @desc    Mark as read
- * @route   PATCH /api/notifications/:id/read
- * @access  Private
- */
 const markAsRead = asyncHandler(async (req, res) => {
   const notification = await Notification.findOne({
-    where: { id: req.params.id, user_id: req.user.id }
+    _id: req.params.id,
+    user_id: req.user._id
   });
 
   if (!notification) throw new Error('Notification not found');

@@ -1,107 +1,58 @@
-/**
- * User Model
- * ----------
- * Represents a registered user (student or admin).
- * Passwords are hashed before storage using bcrypt.
- */
-
-const { DataTypes } = require('sequelize');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const sequelize = require('../config/database');
 
-const User = sequelize.define('User', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const userSchema = new mongoose.Schema({
   name: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    validate: {
-      notEmpty: { msg: 'Name is required' },
-    },
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true,
   },
   email: {
-    type: DataTypes.STRING(150),
-    allowNull: false,
+    type: String,
+    required: [true, 'Email is required'],
     unique: true,
-    validate: {
-      isEmail: { msg: 'Must be a valid email address' },
-    },
+    lowercase: true,
+    trim: true,
   },
   password: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
+    type: String,
+    required: [true, 'Password is required'],
+    select: false, // Don't return password by default
   },
   role: {
-    type: DataTypes.ENUM('student', 'admin'),
-    defaultValue: 'student',
+    type: String,
+    enum: ['student', 'admin'],
+    default: 'student',
   },
-  college: {
-    type: DataTypes.STRING(200),
-    allowNull: true,
-  },
-  department: {
-    type: DataTypes.STRING(100),
-    allowNull: true,
-  },
-  year: {
-    type: DataTypes.STRING(20),
-    allowNull: true,
-  },
-  bio: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  profile_picture: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-  },
-  github_url: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-  },
-  linkedin_url: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-  },
+  college: String,
+  department: String,
+  year: String,
+  bio: String,
+  profile_picture: String,
+  github_url: String,
+  linkedin_url: String,
 }, {
-  tableName: 'users',
-  // Hash password before saving
-  hooks: {
-    beforeCreate: async (user) => {
-      if (user.password) {
-        const salt = await bcrypt.genSalt(12);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
-    },
-    beforeUpdate: async (user) => {
-      if (user.changed('password')) {
-        const salt = await bcrypt.genSalt(12);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
-    },
-  },
+  timestamps: true,
 });
 
-/**
- * Instance method: Compare a candidate password with the stored hash.
- * @param {string} candidatePassword - The plain-text password to check
- * @returns {Promise<boolean>}
- */
-User.prototype.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+// Hash password before saving
+userSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password, 12);
+});
+
+
+// Compare password method
+userSchema.methods.comparePassword = async function(candidatePassword, userPassword) {
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-/**
- * Instance method: Return user data without the password field.
- * @returns {Object}
- */
-User.prototype.toSafeJSON = function () {
-  const values = { ...this.get() };
-  delete values.password;
-  return values;
+// Safe JSON method
+userSchema.methods.toSafeJSON = function() {
+  const userObj = this.toObject();
+  delete userObj.password;
+  return userObj;
 };
 
+const User = mongoose.model('User', userSchema);
 module.exports = User;

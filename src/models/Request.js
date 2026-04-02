@@ -1,45 +1,25 @@
-/**
- * Request Model
- * -------------
- * Represents a skill-exchange request from one user to learn a skill.
- * Links a requester to a specific skill listing.
- */
+const mongoose = require('mongoose');
 
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-
-const Request = sequelize.define('Request', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const requestSchema = new mongoose.Schema({
   requester_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   skill_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'skills',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Skill',
+    required: true,
   },
-  message: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
+  message: String,
   status: {
-    type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
-    defaultValue: 'pending',
+    type: String,
+    enum: ['pending', 'accepted', 'rejected'],
+    default: 'pending',
   },
 }, {
-  tableName: 'requests',
+  timestamps: true,
 });
 
+const Request = mongoose.model('Request', requestSchema);
 module.exports = Request;

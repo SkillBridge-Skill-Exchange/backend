@@ -1,30 +1,21 @@
 const { asyncHandler } = require('../utils/helpers');
 const { PortfolioProject } = require('../models');
 
-/**
- * @desc    Get logged in user's portfolio
- * @route   GET /api/portfolio
- * @access  Private
- */
 const getMyPortfolio = asyncHandler(async (req, res) => {
-  const projects = await PortfolioProject.findAll({
-    where: { user_id: req.user.id },
-    order: [['createdAt', 'DESC']],
-  });
+  const projects = await PortfolioProject.find({ user_id: req.user._id })
+    .sort({ createdAt: -1 })
+    .lean();
 
-  res.status(200).json({ success: true, data: projects });
+  // Add id field for frontend compatibility
+  const formatted = projects.map(p => ({ ...p, id: p._id.toString() }));
+  res.status(200).json({ success: true, data: formatted });
 });
 
-/**
- * @desc    Add a project to portfolio
- * @route   POST /api/portfolio
- * @access  Private
- */
 const addProject = asyncHandler(async (req, res) => {
   const { title, description, project_link, github_link, image_url } = req.body;
 
   const project = await PortfolioProject.create({
-    user_id: req.user.id,
+    user_id: req.user._id,
     title,
     description,
     project_link,
@@ -32,22 +23,18 @@ const addProject = asyncHandler(async (req, res) => {
     image_url,
   });
 
-  res.status(201).json({ success: true, data: project });
+  res.status(201).json({ success: true, data: { ...project.toObject(), id: project._id.toString() } });
 });
 
-/**
- * @desc    Delete a project
- * @route   DELETE /api/portfolio/:id
- * @access  Private
- */
 const deleteProject = asyncHandler(async (req, res) => {
   const project = await PortfolioProject.findOne({
-    where: { id: req.params.id, user_id: req.user.id },
+    _id: req.params.id,
+    user_id: req.user._id,
   });
 
   if (!project) throw new Error('Project not found');
 
-  await project.destroy();
+  await project.deleteOne();
   res.status(200).json({ success: true, message: 'Project removed' });
 });
 

@@ -33,18 +33,26 @@ const proficiencyWeight = { beginner: 1, intermediate: 2, advanced: 3, expert: 4
  * @access  Private
  */
 const getMatches = asyncHandler(async (req, res) => {
-  const mySkills = await Skill.findAll({ where: { user_id: req.user.id } });
+  const mySkills = await Skill.find({ user_id: req.user._id }).lean();
   
   if (mySkills.length === 0) {
     return res.status(200).json({ success: true, data: [] });
   }
 
   // Get all users with skills
-  const allUsers = await User.findAll({
-    where: { id: { [require('sequelize').Op.ne]: req.user.id } },
-    include: [{ model: Skill, as: 'skills' }],
-    attributes: { exclude: ['password'] }
-  });
+  // We need to fetch users and manually join/link skills for Mongo
+  const allUsersRaw = await User.find({ _id: { $ne: req.user._id } })
+    .select('-password')
+    .lean();
+
+  const userIds = allUsersRaw.map(u => u._id);
+  const allSkillsRaw = await Skill.find({ user_id: { $in: userIds } }).lean();
+
+  // Attach skills to user objects for similarity calculation
+  const allUsers = allUsersRaw.map(u => ({
+    ...u,
+    skills: allSkillsRaw.filter(s => s.user_id.toString() === u._id.toString())
+  }));
 
   // Build vocabulary from all skill names
   const allSkillNames = new Set();
@@ -79,7 +87,7 @@ const getMatches = asyncHandler(async (req, res) => {
 
       return {
         user: { 
-          id: u.id, name: u.name, college: u.college, department: u.department 
+          id: u._id, name: u.name, college: u.college, department: u.department 
         },
         match_percentage: Math.round(matchScore),
         suggested_skills: u.skills.map(s => s.skill_name).slice(0, 3),

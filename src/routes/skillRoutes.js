@@ -16,6 +16,7 @@ const {
   getAllSkills,
   getSkillById,
   deleteSkill,
+  updateSkill,
 } = require('../controllers/skillController');
 
 const router = Router();
@@ -39,6 +40,7 @@ router.post(
   createSkill
 );
 
+router.put('/:id', protect, updateSkill);
 router.delete('/:id', protect, deleteSkill);
 
 module.exports = router;

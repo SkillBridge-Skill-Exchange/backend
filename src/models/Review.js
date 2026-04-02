@@ -1,48 +1,26 @@
-/**
- * Review Model
- * ------------
- * Allows users to rate and review other users after a skill exchange.
- */
+const mongoose = require('mongoose');
 
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-
-const Review = sequelize.define('Review', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const reviewSchema = new mongoose.Schema({
   reviewer_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   reviewed_user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   rating: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    validate: {
-      min: 1,
-      max: 5,
-    },
+    type: Number,
+    min: 1,
+    max: 5,
+    required: true,
   },
-  comment: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
+  comment: String,
 }, {
-  tableName: 'reviews',
+  timestamps: true,
 });
 
+const Review = mongoose.model('Review', reviewSchema);
 module.exports = Review;
