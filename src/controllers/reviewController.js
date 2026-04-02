@@ -1,29 +1,16 @@
-/**
- * Review Controller
- * ------------------
- * Handles creating and retrieving reviews for users.
- */
-
 const { asyncHandler } = require('../utils/helpers');
 const { Review, User } = require('../models');
 
-/**
- * @desc    Create a review for another user
- * @route   POST /api/reviews
- * @access  Private
- */
 const createReview = asyncHandler(async (req, res) => {
   const { reviewed_user_id, rating, comment } = req.body;
 
-  // Prevent self-review
-  if (reviewed_user_id === req.user.id) {
+  if (reviewed_user_id === req.user._id.toString()) {
     const error = new Error('You cannot review yourself');
     error.statusCode = 400;
     throw error;
   }
 
-  // Verify the reviewed user exists
-  const reviewedUser = await User.findByPk(reviewed_user_id);
+  const reviewedUser = await User.findById(reviewed_user_id);
   if (!reviewedUser) {
     const error = new Error('User to review not found');
     error.statusCode = 404;
@@ -31,7 +18,7 @@ const createReview = asyncHandler(async (req, res) => {
   }
 
   const review = await Review.create({
-    reviewer_id: req.user.id,
+    reviewer_id: req.user._id,
     reviewed_user_id,
     rating,
     comment,
@@ -44,36 +31,30 @@ const createReview = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * @desc    Get all reviews for a specific user
- * @route   GET /api/reviews/:userId
- * @access  Public
- */
 const getReviewsByUserId = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  const reviews = await Review.findAll({
-    where: { reviewed_user_id: userId },
-    include: [
-      {
-        model: User,
-        as: 'reviewer',
-        attributes: ['id', 'name', 'email'],
-      },
-    ],
-    order: [['created_at', 'DESC']],
-  });
+  const reviews = await Review.find({ reviewed_user_id: userId })
+    .populate('reviewer_id', 'name email')
+    .sort({ createdAt: -1 })
+    .lean();
 
-  // Calculate average rating
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(2)
+  // Format for frontend: rename reviewer_id to reviewer, add id
+  const formatted = reviews.map(r => ({
+    ...r,
+    id: r._id.toString(),
+    reviewer: r.reviewer_id || {},
+  }));
+
+  const avgRating = formatted.length > 0
+    ? (formatted.reduce((sum, r) => sum + r.rating, 0) / formatted.length).toFixed(2)
     : 0;
 
   res.status(200).json({
     success: true,
-    count: reviews.length,
+    count: formatted.length,
     averageRating: parseFloat(avgRating),
-    data: reviews,
+    data: formatted,
   });
 });
 

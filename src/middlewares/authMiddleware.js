@@ -31,9 +31,8 @@ const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach user to request (exclude password)
-    const user = await User.findByPk(decoded.id, {
-      attributes: { exclude: ['password'] },
-    });
+    const user = await User.findById(decoded.id);
+
 
     if (!user) {
       return res.status(401).json({

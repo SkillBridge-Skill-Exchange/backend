@@ -8,29 +8,38 @@ const { Skill, User, Request, Review, sequelize } = require('../models');
  */
 const getDashboardStats = asyncHandler(async (req, res) => {
   // 1. My Stats
-  const mySkillsCount = await Skill.count({ where: { user_id: req.user.id } });
-  const myRequestsCount = await Request.count({ where: { requester_id: req.user.id } });
+  const mySkillsCount = await Skill.countDocuments({ user_id: req.user._id });
+  const myRequestsCount = await Request.countDocuments({ requester_id: req.user._id });
   
-  // 2. Most in-demand skills (chart data)
-  const demandData = await Skill.findAll({
-    attributes: [
-      'skill_name',
-      [sequelize.fn('COUNT', sequelize.col('skill_name')), 'count']
-    ],
-    group: ['skill_name'],
-    order: [[sequelize.literal('count'), 'DESC']],
-    limit: 5
-  });
+  // 2. Most in-demand skills (aggregation pipeline)
+  const demandData = await Skill.aggregate([
+    { $group: { _id: "$skill_name", count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: 5 },
+    { $project: { skill_name: "$_id", count: 1, _id: 0 } }
+  ]);
 
-  // 3. Top contributors leaderboard
-  const leaderboard = await User.findAll({
-    attributes: [
-      'id', 'name', 'college',
-      [sequelize.literal('(SELECT COUNT(*) FROM skills WHERE skills.user_id = User.id)'), 'skillsCount']
-    ],
-    order: [[sequelize.literal('skillsCount'), 'DESC']],
-    limit: 5
-  });
+  // 3. Top contributors leaderboard (aggregation pipeline)
+  // We join User with Skill count manually or using lookup
+  const leaderboard = await User.aggregate([
+    {
+      $lookup: {
+        from: "skills",
+        localField: "_id",
+        foreignField: "user_id",
+        as: "userSkills"
+      }
+    },
+    {
+      $project: {
+        name: 1,
+        college: 1,
+        skillsCount: { $size: "$userSkills" }
+      }
+    },
+    { $sort: { skillsCount: -1 } },
+    { $limit: 5 }
+  ]);
 
   res.status(200).json({
     success: true,

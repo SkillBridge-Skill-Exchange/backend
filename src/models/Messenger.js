@@ -1,48 +1,44 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const mongoose = require('mongoose');
 
-const Conversation = sequelize.define('Conversation', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const conversationSchema = new mongoose.Schema({
   user1_id: {
-    type: DataTypes.INTEGER,
-    references: { model: 'users', key: 'id' },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   user2_id: {
-    type: DataTypes.INTEGER,
-    references: { model: 'users', key: 'id' },
-  },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  }
 }, {
-  tableName: 'conversations',
+  timestamps: true,
 });
 
-const Message = sequelize.define('Message', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const messageSchema = new mongoose.Schema({
   conversation_id: {
-    type: DataTypes.INTEGER,
-    references: { model: 'conversations', key: 'id' },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conversation',
+    required: true,
   },
   sender_id: {
-    type: DataTypes.INTEGER,
-    references: { model: 'users', key: 'id' },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   content: {
-    type: DataTypes.TEXT,
-    allowNull: false,
+    type: String,
+    required: true,
   },
   is_read: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
+    type: Boolean,
+    default: false,
+  }
 }, {
-  tableName: 'messages',
+  timestamps: true,
 });
+
+const Conversation = mongoose.model('Conversation', conversationSchema);
+const Message = mongoose.model('Message', messageSchema);
 
 module.exports = { Conversation, Message };

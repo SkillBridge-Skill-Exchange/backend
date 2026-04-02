@@ -1,44 +1,32 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const mongoose = require('mongoose');
 
-const PortfolioProject = sequelize.define('PortfolioProject', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const portfolioProjectSchema = new mongoose.Schema({
   user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   title: {
-    type: DataTypes.STRING(200),
-    allowNull: false,
+    type: String,
+    required: true,
+    trim: true,
   },
   description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
+    type: String,
+    required: true,
   },
   project_link: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    validate: { isUrl: true },
+    type: String,
+    trim: true,
   },
   github_link: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    validate: { isUrl: true },
+    type: String,
+    trim: true,
   },
-  image_url: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-  },
+  image_url: String,
 }, {
-  tableName: 'portfolio_projects',
+  timestamps: true,
 });
 
+const PortfolioProject = mongoose.model('PortfolioProject', portfolioProjectSchema);
 module.exports = PortfolioProject;

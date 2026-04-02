@@ -1,52 +1,34 @@
-/**
- * Skill Model
- * -----------
- * Represents a skill that a user can offer for exchange.
- * Each skill belongs to one User and has a proficiency level.
- */
+const mongoose = require('mongoose');
 
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-
-const Skill = sequelize.define('Skill', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const skillSchema = new mongoose.Schema({
   user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   skill_name: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    validate: {
-      notEmpty: { msg: 'Skill name is required' },
-    },
+    type: String,
+    required: [true, 'Skill name is required'],
+    trim: true,
   },
   category: {
-    type: DataTypes.STRING(100),
-    allowNull: true,
+    type: String,
+    default: 'General',
   },
   proficiency_level: {
-    type: DataTypes.ENUM('beginner', 'intermediate', 'advanced', 'expert'),
-    defaultValue: 'beginner',
+    type: String,
+    enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+    default: 'beginner',
   },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
+  description: String,
   type: {
-    type: DataTypes.ENUM('offer', 'request'),
-    defaultValue: 'offer',
+    type: String,
+    enum: ['offer', 'request'],
+    default: 'offer',
   },
 }, {
-  tableName: 'skills',
+  timestamps: true,
 });
 
+const Skill = mongoose.model('Skill', skillSchema);
 module.exports = Skill;

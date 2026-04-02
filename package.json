@@ -8,7 +8,11 @@
     "dev": "nodemon server.js",
     "seed": "node src/utils/seed.js"
   },
-  "keywords": ["skillbridge", "student", "skill-exchange"],
+  "keywords": [
+    "skillbridge",
+    "student",
+    "skill-exchange"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -18,6 +22,7 @@
     "express": "^4.21.0",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.3.3",
     "morgan": "^1.10.0",
     "mysql2": "^3.11.0",
     "sequelize": "^6.37.3"

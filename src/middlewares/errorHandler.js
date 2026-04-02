@@ -1,17 +1,10 @@
-/**
- * Global Error Handler Middleware
- * --------------------------------
- * Catches all errors thrown in controllers/services and returns
- * a structured JSON error response.
- */
-
 const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err.message);
-  console.error('Stack:', err.stack);
+  // console.error('Error:', err.message);
+  // console.error('Stack:', err.stack);
 
-  // Sequelize validation errors
-  if (err.name === 'SequelizeValidationError') {
-    const messages = err.errors.map((e) => e.message);
+  // Mongoose / Sequelize validation errors
+  if (err.name === 'ValidationError' || err.name === 'SequelizeValidationError') {
+    const messages = err.errors ? Object.values(err.errors).map(e => e.message) : [err.message];
     return res.status(400).json({
       success: false,
       message: 'Validation Error',
@@ -19,13 +12,12 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Sequelize unique constraint errors
-  if (err.name === 'SequelizeUniqueConstraintError') {
-    const messages = err.errors.map((e) => e.message);
+  // MongoDB / Sequelize duplicate key/unique constraint errors
+  if (err.code === 11000 || err.name === 'SequelizeUniqueConstraintError') {
     return res.status(409).json({
       success: false,
       message: 'Duplicate Entry',
-      errors: messages,
+      errors: ['This information already exists in our system.'],
     });
   }
 
@@ -37,13 +29,6 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Token expired',
-    });
-  }
-
   // Default server error
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
@@ -52,5 +37,6 @@ const errorHandler = (err, req, res, next) => {
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
+
 
 module.exports = errorHandler;

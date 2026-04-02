@@ -1,34 +1,20 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const mongoose = require('mongoose');
 
-const Endorsement = sequelize.define('Endorsement', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const endorsementSchema = new mongoose.Schema({
   skill_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'skills',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Skill',
+    required: true,
   },
   endorser_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
-  comment: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
+  comment: String,
 }, {
-  tableName: 'endorsements',
+  timestamps: true,
 });
 
+const Endorsement = mongoose.model('Endorsement', endorsementSchema);
 module.exports = Endorsement;
