@@ -19,34 +19,30 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     { $project: { skill_name: "$_id", count: 1, _id: 0 } }
   ]);
 
-  // 3. Top contributors leaderboard (aggregation pipeline)
-  // We join User with Skill count manually or using lookup
-  const leaderboard = await User.aggregate([
-    {
-      $lookup: {
-        from: "skills",
-        localField: "_id",
-        foreignField: "user_id",
-        as: "userSkills"
-      }
-    },
-    {
-      $project: {
-        name: 1,
-        college: 1,
-        skillsCount: { $size: "$userSkills" }
-      }
-    },
-    { $sort: { skillsCount: -1 } },
-    { $limit: 5 }
-  ]);
+  // 3. Top contributors leaderboard
+  const usersWithSkills = await User.find({}).limit(5).lean();
+  const leaderboard = [];
+  for (const u of usersWithSkills) {
+    const sc = await Skill.countDocuments({ user_id: u._id });
+    if (sc > 0) {
+      leaderboard.push({
+        id: u._id,
+        name: u.name,
+        college: u.college,
+        skillsCount: sc
+      });
+    }
+  }
+  leaderboard.sort((a,b) => b.skillsCount - a.skillsCount);
+
+  console.log(`[DASHBOARD] Stats for ${req.user.name}: skills=${mySkillsCount}, requests=${myRequestsCount}, leaderboardCount=${leaderboard.length}`);
 
   res.status(200).json({
     success: true,
     data: {
       myStats: { mySkillsCount, myRequestsCount },
       demandChart: demandData,
-      leaderboard
+      leaderboard: leaderboard.slice(0, 5)
     }
   });
 });
