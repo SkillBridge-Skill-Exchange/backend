@@ -8,8 +8,8 @@
 
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { 
-  User, Skill, PortfolioProject, Endorsement, Review 
+const {
+  User, Skill, PortfolioProject, Endorsement, Review
 } = require('../models');
 const connectDB = require('../config/db');
 
@@ -29,21 +29,21 @@ const seedDatabase = async () => {
 
     // 3. Create Users
     const users = await User.insertMany([
-      { 
+      {
         name: 'Alice Smith', email: 'alice@student.com', password: 'password123', college: 'Global Institute of Tech', department: 'Computer Science', year: '4th Year',
         bio: 'Passionate Full-Stack Developer specializing in React and Node.js.',
         github_url: 'https://github.com/alice', linkedin_url: 'https://linkedin.com/in/alice'
       },
-      { 
+      {
         name: 'Bob Johnson', email: 'bob@student.com', password: 'password123', college: 'National Engineering College', department: 'Information Tech', year: '3rd Year',
         bio: 'Data Science enthusiast. I enjoy working with Python.',
         github_url: 'https://github.com/bob'
       },
-      { 
+      {
         name: 'Charlie Davis', email: 'charlie@student.com', password: 'password123', college: 'Tech University', department: 'Mechanical Eng', year: '2nd Year',
         bio: 'Mechanical engineering student.'
       },
-      { 
+      {
         name: 'Diana Prince', email: 'diana@student.com', password: 'password123', college: 'Arts & Design School', department: 'UI/UX Design', year: '4th Year',
         bio: 'UI/UX Designer.',
         linkedin_url: 'https://linkedin.com/in/diana'
