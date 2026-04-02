@@ -1,0 +1,45 @@
+[
+  {
+    "_id": "69ce4eb6462986844cf5403a",
+    "requester_id": {
+      "_id": "69ce40968466a53876515005",
+      "name": "Harini N",
+      "email": "harinin006@gmail.com",
+      "role": "student",
+      "college": "Amrita Vishwa Vidyapeetham",
+      "department": "Engineering",
+      "year": "4th Year",
+      "bio": "Platform Creator & Developer.",
+      "github_url": "https://github.com/harini",
+      "linkedin_url": "https://linkedin.com/in/harini",
+      "createdAt": "2026-04-02T10:10:30.323Z",
+      "updatedAt": "2026-04-02T10:10:30.323Z",
+      "__v": 0
+    },
+    "skill_id": {
+      "_id": "69ce45fce0d148dd7c211aff",
+      "user_id": {
+        "_id": "69ce4599e0d148dd7c211adb",
+        "name": "KOLLA GIRISH",
+        "email": "girishkolla2005@gmail.com",
+        "role": "student",
+        "createdAt": "2026-04-02T10:31:53.551Z",
+        "updatedAt": "2026-04-02T10:31:53.551Z",
+        "__v": 0
+      },
+      "skill_name": "uix design",
+      "category": "developer",
+      "proficiency_level": "beginner",
+      "description": "good ui designer\n",
+      "type": "offer",
+      "createdAt": "2026-04-02T10:33:32.482Z",
+      "updatedAt": "2026-04-02T10:33:32.482Z",
+      "__v": 0
+    },
+    "message": "I'd like to collaborate on uix design!",
+    "status": "pending",
+    "createdAt": "2026-04-02T11:10:46.858Z",
+    "updatedAt": "2026-04-02T11:10:46.858Z",
+    "__v": 0
+  }
+]
