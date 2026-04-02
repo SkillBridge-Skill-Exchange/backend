@@ -8,7 +8,7 @@ const { asyncHandler } = require('../utils/helpers');
 // Get all endorsements for the authenticated user's skills
 router.get('/all', protect, asyncHandler(async (req, res) => {
   const { Skill } = require('../models');
-  const mySkills = await Skill.find({ user_id: req.user.id }).distinct('_id');
+  const mySkills = await Skill.find({ user_id: req.user._id }).distinct('_id');
   
   const endorsements = await Endorsement.find({ skill_id: { $in: mySkills } })
     .populate('endorser_id', 'name college')

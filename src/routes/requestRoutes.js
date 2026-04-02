@@ -24,7 +24,7 @@ router.use(protect);
 router.post(
   '/',
   [
-    body('skill_id').isInt().withMessage('Skill ID must be an integer'),
+    body('skill_id').isMongoId().withMessage('Skill ID must be a valid ID'),
     body('message').optional().trim(),
   ],
   validate,
@@ -37,8 +37,8 @@ router.patch(
   '/:id/status',
   [
     body('status')
-      .isIn(['accepted', 'rejected'])
-      .withMessage('Status must be accepted or rejected'),
+      .isIn(['accepted', 'rejected', 'declined'])
+      .withMessage('Status must be accepted, rejected or declined'),
   ],
   validate,
   updateRequestStatus

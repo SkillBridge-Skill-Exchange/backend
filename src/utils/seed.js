@@ -18,14 +18,18 @@ const seedDatabase = async () => {
     // 1. Connect to MongoDB
     await connectDB();
 
-    // 2. Clear Database
-    console.log('🔄 Clearing existing data...');
-    await User.deleteMany({});
-    await Skill.deleteMany({});
-    await PortfolioProject.deleteMany({});
-    await Endorsement.deleteMany({});
-    await Review.deleteMany({});
-    console.log('✅ Database cleared');
+    // 2. Clear Database (Conditional)
+    if (process.env.FORCE_SEED === 'true') {
+      console.log('🔄 Clearing existing data...');
+      await User.deleteMany({});
+      await Skill.deleteMany({});
+      await PortfolioProject.deleteMany({});
+      await Endorsement.deleteMany({});
+      await Review.deleteMany({});
+      console.log('✅ Database cleared');
+    } else {
+      console.log('⏩ Skipping database clear (Set FORCE_SEED=true to wipe data)');
+    }
 
     // 3. Create Users
     const usersData = [
