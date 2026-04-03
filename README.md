@@ -1,8 +1,8 @@
 # SkillBridge Backend 🔗
 
-A student skill-exchange and freelance mini-platform backend built with Node.js, Express, Sequelize, and MySQL.
+A student skill-exchange and freelance mini-platform backend built with Node.js, Express, Sequelize (MySQL), and Mongoose (MongoDB).
 
-> **Team-friendly:** Each developer runs their own local MySQL database. Tables are auto-created by Sequelize — no manual SQL needed beyond `CREATE DATABASE`.
+> **Hybrid Database Architecture:** Uses **MySQL (Sequelize)** for structured data like Users, Skills, and Reviews, and **MongoDB (Mongoose)** for flexible, high-traffic messaging data including group chats and audio metadata.
 
 ---
 
@@ -10,245 +10,111 @@ A student skill-exchange and freelance mini-platform backend built with Node.js,
 
 ```
 /src
-  /config        → Database connection (Sequelize + MySQL)
-  /models        → User, Skill, Request, Match, Review
+  /config        → Database connections (MySQL + MongoDB)
+  /models        → Sequelize: User, Skill, Request, Match, Review | Mongoose: Messenger
   /controllers   → Route handlers (MVC pattern)
   /routes        → Express routes + input validation
-  /middlewares   → Auth (JWT), error handler, validation
-  /services      → Business logic (auth, AI match placeholder)
+  /middlewares   → Auth (JWT), error handler, validation, Multer (uploads)
+  /services      → Business logic (auth, AI match fallback)
+  /socket        → Socket.io handlers for real-time messaging
   /utils         → Helpers, seed script
   app.js         → Express app setup
-server.js        → Entry point (DB sync + server start)
+server.js        → Entry point (DB syncs + server start)
 .env.example     → Environment template
 ```
 
 ---
 
-## 🚀 Developer Setup (For Each Team Member)
+## 🚀 Developer Setup
 
 ### Prerequisites
 - **Node.js** 18+
-- **MySQL** 8+ (MySQL Workbench, XAMPP, etc.)
+- **MySQL** 8+
+- **MongoDB** 6+ (Local or Atlas)
 - **Git**
 
-### Step 1: Clone & Switch to `dev` Branch
+### Step 1: Clone & Install Dependencies
 
 ```bash
 git clone https://github.com/SkillBridge-Skill-Exchange/backend.git
 cd backend
-git checkout dev
-```
-
-> ⚠️ **Always work on `dev` or feature branches. Never commit to `main` directly.**
-
-### Step 2: Install Dependencies
-
-```bash
 npm install
 ```
 
-### Step 3: Create Your Local Database
+### Step 2: Configure Databases
 
-Open **MySQL Workbench** and run:
+1. **MySQL**: Create a local database named `skillbridge`.
+2. **MongoDB**: Ensure your MongoDB service is running (locally or on Atlas).
 
-```sql
-CREATE DATABASE skillbridge;
-```
+### Step 3: Environment Configuration
 
-> This is the ONLY manual SQL you need. All tables are auto-created on startup.
-
-### Step 4: Create Your `.env` File
+Copy `.env.example` to `.env` and fill in your credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with **your** MySQL credentials:
+**Required Variables**:
+- `PORT`: 5000
+- `DB_NAME`: skillbridge
+- `DB_USER`: root
+- `DB_PASS`: your_mysql_password
+- `MONGO_URI`: mongodb://localhost:27017/skillbridge
+- `JWT_SECRET`: your_secret
 
-```
-DB_NAME=skillbridge
-DB_USER=root
-DB_PASS=your_mysql_password
-DB_HOST=localhost
-JWT_SECRET=secret
-```
+---
 
-> Each developer has their own `.env`. It is **git-ignored** and never committed.
+## 💬 Messaging Features
 
-### Step 5: Run the Backend
+The backend now supports a robust messaging system:
+- **Real-time Synchronization**: Messages, typing indicators, and read receipts via **Socket.io**.
+- **Multimedia Support**: Integration for image, video, and **Voice Messaging** (Audio recording).
+- **Group Management**:
+    - Role-based permissions (Admin vs. Member).
+    - Administrative controls (Add/Remove members, Promote to Admin).
+    - Group Info and live member synchronization.
+- **Audit Logs**: System messages within chats for group events.
 
-```bash
-npm run dev       # with auto-restart (nodemon)
-# or
-npm start         # plain node
-```
+---
 
-You should see:
-```
-✅ Database connection established successfully.
-✅ Database models synced successfully.
-🚀 SkillBridge server running on http://localhost:5000
-```
+## 🔌 API Reference Highlights
 
-### Step 6: Seed Sample Data (Optional)
+### Auth & Users
+- `POST /api/auth/register` | `POST /api/auth/login`
+- `GET /api/users/profile` | `PUT /api/users/profile`
 
-```bash
-npm run seed
-```
+### Skills & Requests
+- `GET /api/skills` | `POST /api/skills`
+- `POST /api/requests` | `PATCH /api/requests/:id/status`
 
-| Email               | Password      | Role    |
-|---------------------|---------------|---------|
-| alice@example.com   | password123   | student |
-| bob@example.com     | password123   | student |
-| charlie@example.com | password123   | student |
-| diana@example.com   | password123   | admin   |
+### Messaging (REST & Socket)
+- `GET /api/messages/conversations` (Fetch chat list)
+- `POST /api/messages/group` (Create group)
+- `POST /api/messages/upload` (Multer upload for media)
+- **Socket Events**: `message_send`, `typing`, `mark_as_read`, `group_add_members`, `group_leave`.
 
 ---
 
 ## 🌿 Git Branching Strategy
 
-```
-main              ← Stable, production-ready (DO NOT commit directly)
- └── dev          ← Active development branch
-      └── feature/*  ← Individual feature branches
-```
+- **main**: Stable, production-ready.
+- **dev**: Active development branch.
+- **feature/**: Individual feature branches.
 
-### Rules
-- ❌ **Do NOT** commit directly to `main`
-- ✅ Always work in `dev` or `feature/*` branches
-- ✅ `main` is only updated via **Pull Request merge** from `dev`
-
----
-
-## 🧑‍🤝‍🧑 Team Workflow
-
-### Working on a New Feature
-
-```bash
-# 1. Make sure you're on latest dev
-git checkout dev
-git pull origin dev
-
-# 2. Create your feature branch
-git checkout -b feature/your-feature-name
-
-# 3. Work, commit regularly
-git add .
-git commit -m "feature: add user profile endpoint"
-
-# 4. Push your feature branch
-git push origin feature/your-feature-name
-
-# 5. Go to GitHub → Create Pull Request → base: dev
-```
-
-### After PR is Merged
-
-```bash
-git checkout dev
-git pull origin dev
-# Your feature is now in dev. Delete local feature branch:
-git branch -d feature/your-feature-name
-```
-
-### Releasing to Main
-
-```bash
-# Only when dev is stable and tested:
-# Create a Pull Request on GitHub: dev → main
-# Review and merge
-```
-
----
-
-## 🔌 API Reference
-
-### Auth
-| Method | Endpoint             | Body                                         | Auth |
-|--------|----------------------|----------------------------------------------|------|
-| POST   | `/api/auth/register` | `{ name, email, password, role?, college? }`  | ❌   |
-| POST   | `/api/auth/login`    | `{ email, password }`                         | ❌   |
-
-### Users
-| Method | Endpoint             | Body                   | Auth |
-|--------|----------------------|------------------------|------|
-| GET    | `/api/users/profile` | —                      | ✅   |
-| PUT    | `/api/users/profile` | `{ name?, college? }`  | ✅   |
-
-### Skills
-| Method | Endpoint          | Body                                                         | Auth |
-|--------|-------------------|--------------------------------------------------------------|------|
-| GET    | `/api/skills`     | Query: `?category=X&proficiency_level=Y`                      | ❌   |
-| GET    | `/api/skills/:id` | —                                                            | ❌   |
-| POST   | `/api/skills`     | `{ skill_name, category?, proficiency_level?, description? }` | ✅   |
-| DELETE | `/api/skills/:id` | —                                                            | ✅   |
-
-### Requests
-| Method | Endpoint                   | Body                      | Auth |
-|--------|----------------------------|---------------------------|------|
-| POST   | `/api/requests`            | `{ skill_id, message? }`  | ✅   |
-| GET    | `/api/requests`            | —                         | ✅   |
-| PATCH  | `/api/requests/:id/status` | `{ status }`               | ✅   |
-
-### Matches
-| Method | Endpoint       | Auth |
-|--------|----------------|------|
-| GET    | `/api/matches` | ✅   |
-
-### Reviews
-| Method | Endpoint               | Body                                    | Auth |
-|--------|------------------------|-----------------------------------------|------|
-| POST   | `/api/reviews`         | `{ reviewed_user_id, rating, comment? }` | ✅   |
-| GET    | `/api/reviews/:userId` | —                                       | ❌   |
-
-**Auth header:** `Authorization: Bearer <JWT_TOKEN>`
-
----
-
-## ☁️ Migrating Local DB to Cloud
-
-### Export Local Database
-
-```bash
-mysqldump -u root -p skillbridge > skillbridge_backup.sql
-```
-
-> In MySQL Workbench: Server → Data Export → Select `skillbridge` → Export
-
-### Import to Cloud
-
-```bash
-mysql -h <cloud-host> -u <cloud-user> -p skillbridge < skillbridge_backup.sql
-```
-
-### Update `.env`
-
-```
-DB_HOST=your-cloud-host.amazonaws.com
-DB_USER=cloud_username
-DB_PASS=cloud_password
-```
-
-This works because Sequelize models define consistent schema — `sync({ alter: true })` only adds missing columns, never drops data.
-
----
-
-## 🧠 AI Match Service
-
-`services/matchService.js` uses Jaccard similarity as a placeholder. Replace `calculateMatchScore()` with an HTTP call to a Python ML microservice when ready.
+> ⚠️ Always work on `dev` or feature branches. Never commit to `main` directly.
 
 ---
 
 ## ⚙️ Tech Stack
 
-| Layer      | Technology                       |
-|------------|----------------------------------|
-| Runtime    | Node.js, Express.js              |
-| Database   | MySQL                            |
-| ORM        | Sequelize                        |
-| Auth       | JWT + bcrypt                     |
-| Validation | express-validator                |
-| Logging    | Morgan                           |
+| Layer      | Technology                          |
+|------------|-------------------------------------|
+| Runtime    | Node.js, Express.js                 |
+| Databases  | MySQL (Sequelize), MongoDB (Mongoose) |
+| Real-time  | Socket.io                           |
+| Auth       | JWT + bcrypt                        |
+| Media      | Multer (File Uploads)               |
+| AI Matching| Python Flask Microservice (Port 5001)|
 
 ---
 
