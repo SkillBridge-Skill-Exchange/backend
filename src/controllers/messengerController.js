@@ -20,10 +20,15 @@ const getConversations = asyncHandler(async (req, res) => {
       .lean();
     conv.messages = latestMessage ? [latestMessage] : [];
     
-    // Format for frontend
+    // Format for frontend identity resolution
+    const u1Raw = conv.user1_id || {};
+    const u2Raw = conv.user2_id || {};
+
     conv.id = conv._id.toString();
-    conv.user1 = conv.user1_id || {};
-    conv.user2 = conv.user2_id || {};
+    conv.user1 = { id: (u1Raw._id || u1Raw).toString(), name: u1Raw.name };
+    conv.user2 = { id: (u2Raw._id || u2Raw).toString(), name: u2Raw.name };
+    conv.user1_id = (u1Raw._id || u1Raw).toString();
+    conv.user2_id = (u2Raw._id || u2Raw).toString();
   }
 
   res.status(200).json({ success: true, data: conversations });

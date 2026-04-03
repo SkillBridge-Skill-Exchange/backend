@@ -36,11 +36,30 @@ const getAllSkills = asyncHandler(async (req, res) => {
 
   // Build dynamic MongoDB filter
   const where = {};
-  if (category) where.category = category;
-  if (proficiency_level) where.proficiency_level = proficiency_level;
+  if (category) {
+    where.$or = where.$or || [];
+    where.$or.push(
+      { category: { $regex: category, $options: 'i' } },
+      { skill_name: { $regex: category, $options: 'i' } }
+    );
+  }
+  if (proficiency_level) {
+    where.proficiency_level = { $regex: `^${proficiency_level}$`, $options: 'i' };
+  }
   if (type) where.type = type;
   if (search) {
-    where.skill_name = { $regex: search, $options: 'i' };
+    const searchFilter = [
+      { skill_name: { $regex: search, $options: 'i' } },
+      { category: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
+    ];
+    if (where.$or) {
+      where.$and = where.$and || [];
+      where.$and.push({ $or: where.$or }, { $or: searchFilter });
+      delete where.$or;
+    } else {
+      where.$or = searchFilter;
+    }
   }
 
   // Fetch from Mongo and populate the owner object matching Sequelize behavior
