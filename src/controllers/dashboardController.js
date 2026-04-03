@@ -19,27 +19,38 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     { $project: { skill_name: "$_id", count: 1, _id: 0 } }
   ]);
 
-  // 3. Top contributors leaderboard
-  const usersWithSkills = await User.find({}).limit(5).lean();
+  // 3. Top contributors leaderboard - prioritize users with skills
+  const skillsWithUsers = await Skill.find({}).limit(50).lean();
+  const leaderMap = {};
+  for (const s of skillsWithUsers) {
+    const uid = s.user_id.toString();
+    leaderMap[uid] = (leaderMap[uid] || 0) + 1;
+  }
+  
   const leaderboard = [];
-  for (const u of usersWithSkills) {
-    const sc = await Skill.countDocuments({ user_id: u._id });
-    if (sc > 0) {
+  for (const [uid, count] of Object.entries(leaderMap)) {
+    const u = await User.findById(uid).lean();
+    if (u) {
       leaderboard.push({
         id: u._id,
         name: u.name,
         college: u.college,
-        skillsCount: sc
+        skillsCount: count
       });
     }
   }
   leaderboard.sort((a,b) => b.skillsCount - a.skillsCount);
 
-  console.log(`[DASHBOARD] Stats for ${req.user.name}: skills=${mySkillsCount}, requests=${myRequestsCount}, leaderboardCount=${leaderboard.length}`);
+  // Global verification info
+  const totalGlobalSkills = await Skill.countDocuments({});
+
+  console.log(`[DASHBOARD-v2.1] Stats for ${req.user.name} (${req.user._id}): mySkills=${mySkillsCount}, globalTotal=${totalGlobalSkills}, leaderboardLen=${leaderboard.length}`);
 
   res.status(200).json({
     success: true,
     data: {
+      debugVersion: 'v2.1-RealDataFocus',
+      totalGlobalSkills,
       myStats: { mySkillsCount, myRequestsCount },
       demandChart: demandData,
       leaderboard: leaderboard.slice(0, 5)
