@@ -83,4 +83,22 @@ const getMessages = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: formatted });
 });
 
-module.exports = { getConversations, sendMessage, getMessages };
+const getUnreadCount = asyncHandler(async (req, res) => {
+  // Find all conversations user is part of
+  const myConvs = await Conversation.find({
+    $or: [{ user1_id: req.user._id }, { user2_id: req.user._id }]
+  }).select('_id');
+
+  const convIds = myConvs.map(c => c._id);
+
+  // Count messages in those conversations where I am NOT the sender and is_read is false
+  const count = await Message.countDocuments({
+    conversation_id: { $in: convIds },
+    sender_id: { $ne: req.user._id },
+    is_read: false
+  });
+
+  res.status(200).json({ success: true, count });
+});
+
+module.exports = { getConversations, sendMessage, getMessages, getUnreadCount };
