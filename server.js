@@ -1,23 +1,33 @@
 require('dotenv').config();
+const http = require('http');
+const { Server } = require('socket.io');
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
+const { initializeSocket } = require('./src/socket/socketHandler');
 
 const PORT = process.env.PORT || 5000;
 
-/**
- * Start the server:
- * 1. Connect to MongoDB
- * 2. Start listening on the configured port
- */
 const startServer = async () => {
   try {
-    // Connect to MongoDB
     await connectDB();
 
-    // Start Express server
-    app.listen(PORT, () => {
+    const server = http.createServer(app);
+
+    const io = new Server(server, {
+      cors: {
+        origin: ['http://localhost:3000', 'http://localhost:3001'],
+        methods: ['GET', 'POST'],
+        credentials: true
+      }
+    });
+
+    // Initialize all socket event handlers
+    initializeSocket(io);
+
+    server.listen(PORT, () => {
       console.log(`🚀 SkillBridge server running on http://localhost:${PORT}`);
       console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
+      console.log(`🔌 Socket.IO ready`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
@@ -26,4 +36,3 @@ const startServer = async () => {
 };
 
 startServer();
-

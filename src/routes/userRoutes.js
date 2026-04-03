@@ -21,6 +21,7 @@ router.get('/:id', getUserById);
 router.use(protect);
 
 router.get('/profile', getProfile);
+router.put('/profile/block/:id', require('../controllers/userController').toggleBlockUser);
 
 router.put(
   '/profile',
