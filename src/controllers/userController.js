@@ -127,4 +127,35 @@ const updateProfile = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getAllUsers, getUserById, getProfile, updateProfile };
+/**
+ * @desc    Block or Unblock a user
+ * @route   PUT /api/users/profile/block/:id
+ * @access  Private
+ */
+const toggleBlockUser = asyncHandler(async (req, res) => {
+  const userToBlockId = req.params.id;
+  const currentUserId = req.user.id;
+
+  if (userToBlockId === currentUserId) {
+    return res.status(400).json({ success: false, message: 'You cannot block yourself.' });
+  }
+
+  const currentUser = await User.findById(currentUserId);
+  const isBlocked = currentUser.blockedUsers.includes(userToBlockId);
+
+  if (isBlocked) {
+    currentUser.blockedUsers.pull(userToBlockId);
+  } else {
+    currentUser.blockedUsers.push(userToBlockId);
+  }
+
+  await currentUser.save();
+
+  res.status(200).json({
+    success: true,
+    message: isBlocked ? 'User unblocked successfully.' : 'User blocked successfully.',
+    blockedUsers: currentUser.blockedUsers
+  });
+});
+
+module.exports = { getAllUsers, getUserById, getProfile, updateProfile, toggleBlockUser };
