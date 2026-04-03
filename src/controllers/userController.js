@@ -13,15 +13,26 @@ const { User, Skill, Review, PortfolioProject, Endorsement } = require('../model
  * @access  Public
  */
 const getAllUsers = asyncHandler(async (req, res) => {
-  const { search } = req.query;
-  const filter = search ? {
-    $or: [
+  const { search, department, year } = req.query;
+  
+  const filter = {};
+  
+  if (search) {
+    filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { department: { $regex: search, $options: 'i' } },
       { bio: { $regex: search, $options: 'i' } },
       { college: { $regex: search, $options: 'i' } }
-    ]
-  } : {};
+    ];
+  }
+
+  if (department) {
+    filter.department = { $regex: department, $options: 'i' };
+  }
+
+  if (year) {
+    filter.year = year;
+  }
 
   const users = await User.find(filter)
     .select('name college department year bio profile_image role')
