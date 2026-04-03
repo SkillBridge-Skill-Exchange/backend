@@ -37,8 +37,8 @@ router.patch(
   '/:id/status',
   [
     body('status')
-      .isIn(['accepted', 'declined']) // Changed 'rejected' to 'declined'
-      .withMessage('Status must be accepted or declined'),
+      .isIn(['accepted', 'declined', 'connecting', 'completed'])
+      .withMessage('Status must be accepted, declined, connecting or completed'),
   ],
   validate,
   updateRequestStatus

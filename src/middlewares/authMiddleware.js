@@ -41,6 +41,10 @@ const protect = async (req, res, next) => {
       });
     }
 
+    // Update last seen activity
+    user.last_seen = Date.now();
+    await user.save();
+
     req.user = user;
     next();
   } catch (error) {

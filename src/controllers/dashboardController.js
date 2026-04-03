@@ -8,8 +8,14 @@ const { Skill, User, Request, Review, sequelize } = require('../models');
  */
 const getDashboardStats = asyncHandler(async (req, res) => {
   // 1. My Stats
-  const mySkillsCount = await Skill.countDocuments({ user_id: req.user._id });
-  const myRequestsCount = await Request.countDocuments({ requester_id: req.user._id });
+  const mySkills = await Skill.find({ user_id: req.user._id }).lean();
+  const myRequests = await Request.find({ requester_id: req.user._id })
+    .populate('skill_id', 'skill_name category')
+    .sort({ createdAt: -1 })
+    .lean();
+  
+  const mySkillsCount = mySkills.length;
+  const myRequestsCount = myRequests.length;
   
   // 2. Most in-demand skills (aggregation pipeline)
   const demandData = await Skill.aggregate([
@@ -31,20 +37,41 @@ const getDashboardStats = asyncHandler(async (req, res) => {
       }
     },
     {
+      $lookup: {
+        from: "reviews",
+        localField: "_id",
+        foreignField: "reviewed_user_id",
+        as: "userReviews"
+      }
+    },
+    {
       $project: {
+        id: "$_id",
         name: 1,
         college: 1,
-        skillsCount: { $size: "$userSkills" }
+        department: 1,
+        skillsCount: { $size: { $ifNull: ["$userSkills", []] } },
+        endorsements: { $size: { $ifNull: ["$userReviews", []] } },
+        avgRating: { $round: [{ $ifNull: [{ $avg: "$userReviews.rating" }, 0] }, 1] }
       }
     },
     { $sort: { skillsCount: -1 } },
-    { $limit: 5 }
+    { $limit: 10 }
   ]);
 
   res.status(200).json({
     success: true,
     data: {
-      myStats: { mySkillsCount, myRequestsCount },
+      myStats: { 
+        mySkillsCount, 
+        myRequestsCount,
+        mySkills,
+        myRequests: myRequests.map(r => ({
+          ...r,
+          id: r._id?.toString(),
+          skill: r.skill_id || { skill_name: 'Unknown Skill' }
+        }))
+      },
       demandChart: demandData,
       leaderboard
     }

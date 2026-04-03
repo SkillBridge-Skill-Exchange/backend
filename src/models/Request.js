@@ -14,7 +14,7 @@ const requestSchema = new mongoose.Schema({
   message: String,
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'declined'], // Changed 'rejected' to 'declined'
+    enum: ['pending', 'accepted', 'declined', 'connecting', 'completed'], // Added 'connecting' and 'completed'
     default: 'pending',
   },
 }, {

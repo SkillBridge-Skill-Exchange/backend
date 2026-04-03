@@ -1,5 +1,5 @@
 const { asyncHandler } = require('../utils/helpers');
-const { Review, User } = require('../models');
+const { Review, User, Notification } = require('../models');
 
 const createReview = asyncHandler(async (req, res) => {
   const { reviewed_user_id, rating, comment } = req.body;
@@ -22,6 +22,14 @@ const createReview = asyncHandler(async (req, res) => {
     reviewed_user_id,
     rating,
     comment,
+  });
+
+  await Notification.create({
+    user_id: reviewed_user_id,
+    type: 'review',
+    title: 'New Review Received',
+    content: `${req.user.name || 'Someone'} left you a ${rating}-star review!`,
+    link: `/profile/${reviewed_user_id}`
   });
 
   res.status(201).json({

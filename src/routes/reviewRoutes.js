@@ -27,7 +27,7 @@ router.post(
   '/',
   protect,
   [
-    body('reviewed_user_id').isInt().withMessage('Reviewed user ID must be an integer'),
+    body('reviewed_user_id').isMongoId().withMessage('Reviewed user ID must be a valid ID'),
     body('rating')
       .isInt({ min: 1, max: 5 })
       .withMessage('Rating must be between 1 and 5'),

@@ -6,6 +6,7 @@ const { protect } = require('../middlewares/authMiddleware');
 router.use(protect);
 
 router.get('/conversations', messengerController.getConversations);
+router.get('/unread-count', messengerController.getUnreadCount);
 router.get('/:id', messengerController.getMessages);
 router.post('/', messengerController.sendMessage);
 

@@ -32,13 +32,14 @@ const createSkill = asyncHandler(async (req, res) => {
 });
 
 const getAllSkills = asyncHandler(async (req, res) => {
-  const { category, proficiency_level, type, department, year, search } = req.query;
+  const { category, proficiency_level, type, department, year, search, user_id } = req.query;
 
   // Build dynamic MongoDB filter
   const where = {};
   if (category) where.category = category;
   if (proficiency_level) where.proficiency_level = proficiency_level;
   if (type) where.type = type;
+  if (user_id) where.user_id = user_id;
   if (search) {
     where.skill_name = { $regex: search, $options: 'i' };
   }

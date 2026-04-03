@@ -68,12 +68,18 @@ const getUserById = asyncHandler(async (req, res) => {
   }
 
   // Aggregate all relevant public data for the user profile view
-  const [skills, portfolio, reviews, endorsements] = await Promise.all([
+  const [skills, portfolio, rawReviews, endorsements] = await Promise.all([
     Skill.find({ user_id: user._id }).lean(),
     PortfolioProject.find({ user_id: user._id }).lean(),
-    Review.find({ reviewee_id: user._id }).populate('reviewer', 'name').lean(),
+    Review.find({ reviewed_user_id: user._id }).populate('reviewer_id', 'name').lean(),
     Endorsement.find({ skill_id: { $in: await Skill.find({ user_id: user._id }).distinct('_id') } }).populate('endorser', 'name').lean()
   ]);
+
+  const reviews = rawReviews.map(r => ({
+    ...r,
+    id: r._id?.toString(),
+    reviewer: r.reviewer_id || {},
+  }));
 
   res.status(200).json({
     success: true,

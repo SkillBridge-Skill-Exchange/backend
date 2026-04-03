@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
   profile_picture: String,
   github_url: String,
   linkedin_url: String,
+  last_seen: {
+    type: Date,
+    default: Date.now,
+  },
 }, {
   timestamps: true,
 });
