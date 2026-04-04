@@ -15,7 +15,11 @@ const startServer = async () => {
 
     const io = new Server(server, {
       cors: {
-        origin: ['http://localhost:3000', 'http://localhost:3001'],
+        origin: [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://skillbridgeubayognexus.vercel.app'
+        ],
         methods: ['GET', 'POST'],
         credentials: true
       }

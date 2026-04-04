@@ -2,7 +2,7 @@
  * Match Controller — AI-Powered (Python cosine similarity engine)
  * ================================================================
  * Fetches user + skill data from MongoDB, then delegates similarity
- * scoring to the Python AI microservice running on port 5001.
+ * scoring to the Python AI microservice (deployed on Render).
  *
  * Falls back to a pure-JS cosine similarity engine if the Python
  * service is unreachable (so the app still works in dev without it).
@@ -14,7 +14,8 @@
 
 const { asyncHandler } = require('../utils/helpers');
 const { User, Skill } = require('../models');
-const http = require('http');
+const http  = require('http');
+const https = require('https');
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:5001';
 
@@ -85,26 +86,30 @@ const jsFallbackMatch = (mySkills, allUsers) => {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// Call Python AI microservice
+// Call Python AI microservice (supports both HTTP and HTTPS)
 // ─────────────────────────────────────────────────────────────────
 const callPythonAI = (payload) =>
   new Promise((resolve, reject) => {
     const body = JSON.stringify(payload);
     const url  = new URL('/api/ai/matches', AI_SERVICE_URL);
 
+    // Pick http or https module based on the URL protocol
+    const transport = url.protocol === 'https:' ? https : http;
+    const defaultPort = url.protocol === 'https:' ? 443 : 5001;
+
     const options = {
       hostname: url.hostname,
-      port:     url.port || 5001,
+      port:     url.port || defaultPort,
       path:     url.pathname,
       method:   'POST',
       headers:  {
         'Content-Type':   'application/json',
         'Content-Length': Buffer.byteLength(body),
       },
-      timeout: 8000,
+      timeout: 15000,
     };
 
-    const req = http.request(options, (res) => {
+    const req = transport.request(options, (res) => {
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
@@ -171,12 +176,12 @@ const getMatches = asyncHandler(async (req, res) => {
     const aiResult = await callPythonAI(aiPayload);
     if (aiResult.success) {
       matches = aiResult.data;
-      console.log(`[MATCH] AI service returned ${matches.length} matches`);
+      console.log(`[MATCH] ✅ AI service returned ${matches.length} matches`);
     } else {
       throw new Error(aiResult.error || 'AI service returned failure');
     }
   } catch (err) {
-    console.warn(`[MATCH] Python AI service unavailable (${err.message}) — using JS fallback`);
+    console.warn(`[MATCH] ⚠️ Python AI service unavailable (${err.message}) — using JS fallback`);
     matches = jsFallbackMatch(mySkills, allUsers);
   }
 
