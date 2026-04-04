@@ -71,7 +71,7 @@ const getProfile = asyncHandler(async (req, res) => {
  */
 const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id)
-    .select('name college department year bio github_url linkedin_url profile_image role')
+    .select('name college department year bio github_url linkedin_url profile_image role experience education')
     .lean();
   
   if (!user) {
@@ -104,7 +104,7 @@ const getUserById = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const updateProfile = asyncHandler(async (req, res) => {
-  const { name, college } = req.body;
+  const { name, college, bio, github_url, linkedin_url, year, department, experience, education } = req.body;
 
   const user = await User.findById(req.user.id);
 
@@ -114,9 +114,15 @@ const updateProfile = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  // Only allow updating name and college (not email/password via this route)
   if (name) user.name = name;
   if (college) user.college = college;
+  if (bio !== undefined) user.bio = bio;
+  if (github_url !== undefined) user.github_url = github_url;
+  if (linkedin_url !== undefined) user.linkedin_url = linkedin_url;
+  if (year) user.year = year;
+  if (department) user.department = department;
+  if (experience) user.experience = experience;
+  if (education) user.education = education;
 
   await user.save();
 

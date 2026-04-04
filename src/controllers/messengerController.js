@@ -7,7 +7,8 @@ const getConversations = asyncHandler(async (req, res) => {
       { user1_id: req.user._id },
       { user2_id: req.user._id },
       { 'members.user': req.user._id }
-    ]
+    ],
+    hiddenBy: { $ne: req.user._id }
   })
     .populate('user1_id', 'name college isOnline lastSeen')
     .populate('user2_id', 'name college isOnline lastSeen')
@@ -184,6 +185,24 @@ const getUnreadCount = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, count: unreadMessagesCount });
 });
 
+const deleteConversation = asyncHandler(async (req, res) => {
+  const conversation = await Conversation.findById(req.params.id);
+  if (!conversation) {
+    return res.status(404).json({ success: false, message: 'Conversation not found' });
+  }
+
+  if (!conversation.hiddenBy) conversation.hiddenBy = [];
+
+  // Push user to hiddenBy if not already there (compare as strings)
+  const userIdStr = req.user._id.toString();
+  if (!conversation.hiddenBy.some(id => id.toString() === userIdStr)) {
+    conversation.hiddenBy.push(req.user._id);
+    await conversation.save();
+  }
+
+  res.status(200).json({ success: true, message: 'Chat deleted from view.' });
+});
+
 module.exports = {
   getConversations,
   getMessages,
@@ -191,5 +210,6 @@ module.exports = {
   uploadFile,
   getPresence,
   createGroup,
-  getUnreadCount
+  getUnreadCount,
+  deleteConversation
 };

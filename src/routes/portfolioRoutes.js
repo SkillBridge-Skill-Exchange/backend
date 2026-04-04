@@ -7,6 +7,7 @@ router.use(protect);
 
 router.get('/', portfolioController.getMyPortfolio);
 router.post('/', portfolioController.addProject);
+router.put('/:id', portfolioController.updateProject);
 router.delete('/:id', portfolioController.deleteProject);
 
 module.exports = router;

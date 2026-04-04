@@ -13,5 +13,6 @@ router.post('/group', messengerController.createGroup);
 router.get('/:id', messengerController.getMessages);
 router.post('/', messengerController.sendMessage);
 router.post('/upload', upload.single('file'), messengerController.uploadFile);
+router.delete('/conversation/:id', messengerController.deleteConversation);
 
 module.exports = router;

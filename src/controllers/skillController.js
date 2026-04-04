@@ -5,7 +5,7 @@
  */
 
 const { asyncHandler } = require('../utils/helpers');
-const { Skill, User } = require('../models');
+const { Skill, User, Endorsement } = require('../models');
 
 /**
  * @desc    Create a new skill for the authenticated user
@@ -72,12 +72,25 @@ const getAllSkills = asyncHandler(async (req, res) => {
     .lean(); // Faster to use vanilla structs
     
   // Format the output to exactly match the structure frontend expects!
-  skills = skills.map(s => {
+  // Populate isEndorsed for the current user
+  skills = await Promise.all(skills.map(async s => {
     s.id = s._id.toString();
     s.owner = s.user_id || {};
     if (s.owner._id) s.owner.id = s.owner._id.toString();
+    
+    // Check if current user has endorsed this skill
+    if (req.user) {
+      const endorsed = await Endorsement.findOne({
+        skill_id: s._id,
+        endorser_id: req.user._id
+      });
+      s.isEndorsed = !!endorsed;
+    } else {
+      s.isEndorsed = false;
+    }
+    
     return s;
-  });
+  }));
 
   // Handle cross-collection filtering for user attributes
   if (department || year) {

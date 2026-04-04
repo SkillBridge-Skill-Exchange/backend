@@ -28,4 +28,13 @@ const markAsRead = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: notification });
 });
 
-module.exports = { getMyNotifications, markAsRead };
+const markAllRead = asyncHandler(async (req, res) => {
+  await Notification.updateMany(
+    { user_id: req.user._id, is_read: false },
+    { is_read: true }
+  );
+
+  res.status(200).json({ success: true, message: 'All notifications marked as read' });
+});
+
+module.exports = { getMyNotifications, markAsRead, markAllRead };

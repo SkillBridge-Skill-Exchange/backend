@@ -43,6 +43,17 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  experience: [{
+    title: String,
+    company: String,
+    duration: String,
+    description: String
+  }],
+  education: [{
+    school: String,
+    degree: String,
+    year: String
+  }]
 }, {
   timestamps: true,
 });

@@ -38,4 +38,23 @@ const deleteProject = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'Project removed' });
 });
 
-module.exports = { getMyPortfolio, addProject, deleteProject };
+const updateProject = asyncHandler(async (req, res) => {
+  const project = await PortfolioProject.findOne({
+    _id: req.params.id,
+    user_id: req.user._id,
+  });
+
+  if (!project) throw new Error('Project not found');
+
+  const { title, description, project_link, github_link, image_url } = req.body;
+  if (title) project.title = title;
+  if (description) project.description = description;
+  if (project_link) project.project_link = project_link;
+  if (github_link) project.github_link = github_link;
+  if (image_url) project.image_url = image_url;
+
+  await project.save();
+  res.status(200).json({ success: true, data: { ...project.toObject(), id: project._id.toString() } });
+});
+
+module.exports = { getMyPortfolio, addProject, deleteProject, updateProject };
